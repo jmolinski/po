@@ -1,0 +1,33 @@
+@startuml pojazdy
+
+class Coord {
+  -lat: float
+  -lon: float 
+
+  +Coord Coord(float lat, float lon)
+  +float get_lat()
+  +float get_lon()
+}
+
+class Pojazd {
+  -id: string
+  -nazwa: string
+  -sprawny: bool
+  -rodzaj_paliwa: string
+  -jednostka: string
+  -jednostek_na_100km: float
+  -koszt_jednostki: float 
+  -zasieg: float
+  -predkosc: float
+  
+  +bool is_sprawny()
+  +void set_sprawny(bool v)
+  +string get_nazwa()
+  +string get_id()
+  -float {abstract} dystans_podrozy(Coord a, Coord b)
+  +float {abstract} koszt_podrozy(Coord a, Coord b)
+  +float czas_podrozy(Coord a, Coord b)
+}
+
+
+@enduml 
