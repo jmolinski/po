@@ -1,5 +1,7 @@
 @startuml pojazdy
 
+left to right direction
+
 class Coord {
   -lat: float
   -lon: float 
@@ -15,7 +17,7 @@ class Pojazd {
   -sprawny: bool
   -rodzaj_paliwa: string
   -jednostka: string
-  -jednostek_na_100km: float
+  -spalanie_100km: float [liczba jednostek]
   -koszt_jednostki: float 
   -zasieg: float
   -predkosc: float
@@ -29,5 +31,98 @@ class Pojazd {
   +float czas_podrozy(Coord a, Coord b)
 }
 
+class Ladowy {
+  -drogowy: bool 
+  -kolejowy: bool 
+  -offroadowy: bool
+
+  -float dystans_podrozy(Coord a, Coord b)
+  +float koszt_podrozy(Coord a, Coord b)
+}
+
+class Wodny {
+  -podwodny: bool
+  -minimalna_glebokosc: int 
+
+  -float dystans_podrozy(Coord a, Coord b)
+  +float koszt_podrozy(Coord a, Coord b)
+}
+
+class Powietrzny {
+  -pulap: int 
+  -wymaga_pasa_startowego: bool 
+
+  -float dystans_podrozy(Coord a, Coord b)
+  +float koszt_podrozy(Coord a, Coord b)
+}
+
+Pojazd <-- Ladowy
+Pojazd <-- Wodny
+Pojazd <-- Powietrzny
+
+class Statek {
+  +Statek(string id, string nazwa, int zasieg, int predkosc, float spalanie_100km, int minimalna_glebokosc)
+}
+
+class LodzPodwodna {
+  +LodzPodwodna(string id, string nazwa, int zasieg, int predkosc, float spalanie_100km, int minimalna_glebokosc)
+}
+
+Wodny <-- Statek
+Wodny <-- LodzPodwodna
+
+class Amfibia {
+ -spalanie_100km_woda: float
+ -spalanie_100km_lad: float
+ +Amfibia(string id, string nazwa, int zasieg, int predkosc, float spalanie_100km_woda, float spalanie_100km_lad, int minimalna_glebokosc, bool offroad)
+ -float dystans_podrozy(Coord a, Coord b)
+ -float dystans_podrozy_woda(Coord a, Coord b)
+ -float dystans_podrozy_lad(Coord a, coord b)
+ +float koszt_podrozy(Coord a, Coord b)
+}
+
+class Poduszkowiec {
+ +Poduszkowiec(string id, string nazwa, int zasieg, int predkosc, float spalanie_100km_woda, float spalanie_100km_lad)
+}
+
+
+Wodny <-- Amfibia
+Ladowy <-- Amfibia
+
+Amfibia <-- Poduszkowiec
+
+class Samochod {
+  +Samochod(string id, string nazwa, int zasieg, int predkosc, float spalanie_100km, bool offroad)
+}
+
+class PociagElektryczny {
+  +PociagElektryczny(string id, string nazwa, int predkosc, float spalanie_100km)
+}
+
+class PociagSpalinowy {
+  +PociagSpalinowy(string id, string nazwa, int predkosc, int zasieg, float spalanie_100km)
+}
+
+Ladowy <-- Samochod
+Ladowy <-- PociagElektryczny 
+Ladowy <-- PociagSpalinowy
+
+class Samolot {
+  +Samolot(string id, string nazwa, int zasieg, int predkosc, float spalanie_100km, int pulap)
+}
+
+class Helikopter {
+  +Helikopter(string id, string nazwa, int zasieg, int predkosc, float spalanie_100km, int pulap)
+}
+
+class Rakieta {
+  -koszt_startu: float
+  +Rakieta(string id, string nazwa, int zasieg, int predkosc, float koszt_startu, int pulap)
+  +float koszt_podrozy(Coord a, Coord b)
+}
+
+Powietrzny <-- Samolot
+Powietrzny <-- Helikopter
+Powietrzny <-- Rakieta
 
 @enduml 
