@@ -1,0 +1,74 @@
+@startuml bagosz
+
+left to right direction
+
+class Bilbo {
+    -kolekcja: KolekcjeSkarbow
+    +void rozdziel(KolekcjaSkarbow, Krasnolud[], Worek[])
+    -void przekazZawartosciWorkow(Krasnoludy[], Worek[])
+    -void zabierzSkarby(Worek)
+}
+
+
+class OdpowiedziBilba {
+  -worki: WidokWorka[]
+  -numerKrasnoluda: int
+
+  +OdpowiedziBilba(worki[], int)
+  +WidokWorka dajMojWorek()
+  +int ileWorkow()
+  +WidokWorka dajWorek(int nr)
+}
+
+
+class Krasnolud {
+    #kolekcja: KolekcjaSkarbow
+    +{abstract} bool czyChceszSkarb()
+    #dostepDoBilbo //odpowiedzi Bilbo
+    +KolekcjaSkarbow dajKolekcje()
+    +void ustawDostepDoBilba(OdpowiedziBilba b)
+}
+
+class KrLos {
+    +bool czyChceszSkarb()
+}
+
+class KrPr {
+    +bool czyChceszSkarb()
+}
+
+class KrStat {
+    +bool czyChceszSkarb()
+}
+
+class Worek {
+  -kolekcja: KolekcjeSkarbow
+  -pojemnosc: int
+  +float procentZapelnienia()
+  +int liczbaSkarbow()
+  +int sumaSkarbow()
+  +boolean dodaj(Skarb s)
+  +void przekazSkarby(KolekcjaSkarbow gdzie)
+}
+
+
+class WidokWorka {
+    -worek: Worek
+    +int liczbaSkarbow()
+    +int sumaSkarbow()
+    +float procentZapelnienia()
+}
+
+
+Krasnolud <|-- KrLos
+Krasnolud <|-- KrPr
+Krasnolud <|-- KrStat
+
+Skarb "*" -- "1" KolekcjaSkarbow
+
+OdpowiedziBilba -left- Bilbo
+
+Worek - WidokWorka
+
+
+@enduml bagosz

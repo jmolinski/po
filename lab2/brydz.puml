@@ -32,8 +32,7 @@ Talia "1 sklada sie z 52" --- "nalezy do" Karta
 Gra "1" -- "*" Tura : sklada sie z
 
 Tura "1" -left- "1" Licytacja : zawiera
-Tura "1" -- "1" Rozgrywka 
-: zawiera
+Tura "1" -- "1" Rozgrywka : zawiera
 
 Licytacja "1" -- "*" Odzywka: sklada sie z 
 Rozgrywka "1" -right- "0..*" Lewa : sklada sie z
@@ -52,12 +51,5 @@ Reka "1" -up- "0..13" Karta : zawiera
 ParaGraczy ------ Lewa : wygrywa
 Gracz --- Odzywka : zagrywa
 
-/'
-Gra -- Rozgrywka
-Rozgrywka -- Lewa
-Gra -- Licytacja
-Licytacja -- Odzywka
-Licytacja - Kontrakt
-'/
 
 @enduml bridge
