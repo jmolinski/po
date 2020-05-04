@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SetUnion implements ISet {
-    public ArrayList<ISet> subsets;
+    private final ArrayList<ISet> subsets;
 
     public SetUnion() {
         subsets = new ArrayList<>();

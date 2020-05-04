@@ -42,8 +42,6 @@ public class FiniteRangeSet implements ISet {
             }
         }
 
-        //System.out.println(covered);
-
         return covered;
     }
 }

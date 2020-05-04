@@ -1,8 +1,8 @@
 package cover;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class GreedyQuery extends Query {
     public GreedyQuery(int range) {
@@ -29,24 +29,24 @@ public class GreedyQuery extends Query {
 
     @Override
     public List<Integer> execute(List<ISet> sets) {
-        boolean[] elementsToCover = new boolean[range + 1]; // 1..range -> 0..range
-        int covered = range;
+        boolean[] elementsToCover = getElementsToCoverRepresentation();
+        int notCovered = range;
 
         HashSet<Integer> usedSets = new HashSet<>();
 
-        while (covered > 0 && usedSets.size() < sets.size()) {
+        while (notCovered > 0 && usedSets.size() < sets.size()) {
             int topSetNo = findBestSetCandidate(usedSets, elementsToCover, sets);
             if (topSetNo == -1) {
                 break;
             } else {
                 usedSets.add(topSetNo);
-                covered -= sets.get(topSetNo).markCoveredElements(elementsToCover);
-                if (covered == 0) {
-                    return usedSets.stream().map(setNo -> setNo + 1).collect(Collectors.toList());
+                notCovered -= sets.get(topSetNo).markCoveredElements(elementsToCover);
+                if (notCovered == 0) {
+                    return new ArrayList<>(usedSets);
                 }
             }
         }
 
-        return List.of(0);
+        return List.of(-1);
     }
 }

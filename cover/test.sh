@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if (($# != 1)); then
-    echo "Usage $0 <directory>"
+if (($# < 1)); then
+    echo "Usage $0 <directory> [sample percentage]"
     exit 1
 fi
 
