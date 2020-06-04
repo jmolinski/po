@@ -1,0 +1,4 @@
+#! /usr/bin/bash
+
+java -ea -jar jar test_file.in
+
