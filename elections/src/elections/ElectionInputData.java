@@ -6,67 +6,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-interface Constituency {
-
-}
-
-class Strategy {
-
-}
-
-class Party {
-    private final String name;
-    private final int budget;
-    private final Strategy strategy;
-
-    public Party(String name, int budget, Strategy strategy) {
-        this.name = name;
-        this.budget = budget;
-        this.strategy = strategy;
-    }
-}
-
-class SingleConstituency implements Constituency {
-    private final int votersCount;
-    private final int baseNumber;
-
-    public SingleConstituency(int votersCount, int baseNumber) {
-        this.votersCount = votersCount;
-        this.baseNumber = baseNumber;
-    }
-
-    public int votersCount() {
-        return votersCount;
-    }
-
-    public int mandatesCount() {
-        return votersCount / 10;
-    }
-
-    public void addVoter(Voter build) {
-        // TODO
-    }
-
-    public void addCandidate(Party party, Candidate candidate) {
-        // TODO
-    }
-}
-
-class MergedConstituencies implements Constituency {
-
-    public MergedConstituencies(SingleConstituency constituency1, SingleConstituency constituency2) {
-        // TODO
-    }
-}
-
-class CampaignAction {
-    int[] vector;
-
-    public CampaignAction(int[] actionVector) {
-        vector = actionVector;
-    }
-}
-
 public class ElectionInputData {
     private int constituenciesCount;
     private int marketingActionsCount;
@@ -84,7 +23,7 @@ public class ElectionInputData {
             readVotersList(inputScanner);
             readCampaignActionsList(inputScanner);
         } catch (Exception e) {
-            throw e;
+            throw new InvalidInputData();
         }
         inputScanner.close();
     }
@@ -113,6 +52,10 @@ public class ElectionInputData {
         return constituencies;
     }
 
+    public CampaignAction[] campaignActions() {
+        return campaignActions;
+    }
+
     private String[] getMatchedGroups(String regex, String text) {
         var matcher = Pattern.compile(regex).matcher(text);
         matcher.find();
@@ -125,7 +68,7 @@ public class ElectionInputData {
         return groups;
     }
 
-    private void readFirstLinesWithBasicConfiguration(Scanner scanner) {
+    private void readFirstLinesWithBasicConfiguration(Scanner scanner) throws InvalidInputData {
         var groups = getMatchedGroups("\\s*(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)", scanner.nextLine());
         constituenciesCount = Integer.parseInt(groups[0]);
         var partiesCount = Integer.parseInt(groups[1]);
@@ -141,22 +84,26 @@ public class ElectionInputData {
             firstConstituenciesOfToMergePairs[i] = Integer.parseInt(m.group(1));
         }
 
+        readAndInitializeBasePartiesData(scanner, partiesCount);
+
+        var votersByConstituency = Stream.of(scanner.nextLine().split("\\s")).filter(
+                e -> !e.isEmpty()).mapToInt(Integer::parseInt).toArray();
+
+        initializeConstituencies(numberOfMerges, votersByConstituency, firstConstituenciesOfToMergePairs);
+    }
+
+    private void readAndInitializeBasePartiesData(Scanner scanner, int partiesCount) throws InvalidInputData {
         var partiesNames = Stream.of(scanner.nextLine().split("\\s")).filter(e -> !e.isEmpty()).toArray(String[]::new);
         var partiesBudgets =
                 Stream.of(scanner.nextLine().split("\\s")).filter(e -> !e.isEmpty()).mapToInt(Integer::parseInt)
                         .toArray();
         var partiesStrategies =
                 Stream.of(scanner.nextLine().split("\\s")).filter(e -> !e.isEmpty()).toArray(String[]::new);
-        var votersByConstituency = Stream.of(scanner.nextLine().split("\\s")).filter(
-                e -> !e.isEmpty()).mapToInt(Integer::parseInt).toArray();
 
         parties = new Party[partiesCount];
-
         for (int i = 0; i < partiesCount; i++) {
             parties[i] = (new PartyBuilder(partiesNames[i], partiesBudgets[i], partiesStrategies[i])).build();
         }
-
-        initializeConstituencies(numberOfMerges, votersByConstituency, firstConstituenciesOfToMergePairs);
     }
 
     private void initializeConstituencies(int numberOfMerges, int[] votersByConstituency,
@@ -196,7 +143,7 @@ public class ElectionInputData {
         return new Candidate(groups[0], groups[1], candidateAttributes);
     }
 
-    private void readVotersList(Scanner scanner) {
+    private void readVotersList(Scanner scanner) throws InvalidInputData {
         for (int constituencyIndex = 0; constituencyIndex < constituenciesCount; constituencyIndex++) {
             for (int voterNumber = 1; voterNumber <= baseConstituencies[constituencyIndex].votersCount();
                  voterNumber++) {
@@ -206,7 +153,7 @@ public class ElectionInputData {
         }
     }
 
-    private Voter parseSingleVoter(String line, int baseConstitituencyNumber) {
+    private Voter parseSingleVoter(String line, int baseConstitituencyNumber) throws InvalidInputData {
         var groups = getMatchedGroups("(\\S+)\\s+(\\S+)\\s+(\\d+)\\s+(\\d+)\\s*(.*)", line);
         var voterBuilder = new VoterBuilder(groups[0], groups[1], baseConstitituencyNumber,
                 Integer.parseInt(groups[3]), groups[4]);
