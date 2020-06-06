@@ -22,10 +22,33 @@ public class SingleConstituency implements Constituency {
     }
 
     @Override
-    public void applyVectorModifierToVoters(int[] vector) {
-        for (var voter: voters) {
+    public void permanentlyUpdateVotersPreferences(int[] vector) {
+        for (var voter : voters) {
+            voter.applyModifierVector(vector);
+            voter.saveUpdatedPreferences();
+        }
+    }
+
+    @Override
+    public void temporarilyUpdateVotersPreferences(int[] vector) {
+        for (var voter : voters) {
             voter.applyModifierVector(vector);
         }
+    }
+
+    @Override
+    public int checkCumulativePartyScoreAfterApplyingAction(CampaignAction action, Party party) {
+        action.temporarilyUpdateVotersPreferences(this);
+
+        int totalScore = 0;
+        for (Voter voter : voters) {
+            for (Candidate candidate : candidatesByParty.get(party)) {
+                totalScore += voter.getCandidateScore(candidate);
+            }
+            voter.restoreSavedPreferences();
+        }
+
+        return totalScore;
     }
 
     public int mandatesCount() {

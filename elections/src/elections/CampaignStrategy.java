@@ -14,5 +14,6 @@ public abstract class CampaignStrategy {
     }
 
     protected abstract ActionConstituencyPair chooseActionConstituencyPair(Constituency[] constituencies,
-                                                         CampaignAction[] availableActions, Party party);
+                                                                           CampaignAction[] availableActions,
+                                                                           Party party);
 }

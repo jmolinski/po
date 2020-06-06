@@ -16,7 +16,17 @@ public class MergedConstituencies implements Constituency {
     }
 
     @Override
-    public void applyVectorModifierToVoters(int[] vector) {
+    public void permanentlyUpdateVotersPreferences(int[] vector) {
 
+    }
+
+    @Override
+    public void temporarilyUpdateVotersPreferences(int[] vector) {
+        // TODO
+    }
+
+    @Override
+    public int checkCumulativePartyScoreAfterApplyingAction(CampaignAction action, Party party) {
+        return 0;
     }
 }

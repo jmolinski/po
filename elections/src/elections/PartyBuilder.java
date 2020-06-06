@@ -5,38 +5,95 @@ class GreedyCampaignStrategy extends CampaignStrategy {
     @Override
     protected ActionConstituencyPair chooseActionConstituencyPair(Constituency[] constituencies,
                                                                   CampaignAction[] availableActions, Party party) {
+        Constituency bestConstituency = null;
+        CampaignAction bestAction = null;
+        int bestNewScore = 0;
+
+        for (Constituency constituency : constituencies) {
+            for (CampaignAction action : availableActions) {
+                if (action.calculateActionCost(constituency) <= party.getRemainingBudget()) {
+                    int scoreAfterApplyingAction = getScoreAfterApplyingAction(constituency, action, party);
+                    if (bestAction == null || bestNewScore > scoreAfterApplyingAction) {
+                        bestAction = action;
+                        bestConstituency = constituency;
+                        bestNewScore = scoreAfterApplyingAction;
+                    }
+                }
+            }
+        }
+
+        return bestAction == null ? null : new ActionConstituencyPair(bestAction, bestConstituency);
+    }
+
+    private int getScoreAfterApplyingAction(Constituency constituency, CampaignAction action, Party party) {
+        return constituency.checkCumulativePartyScoreAfterApplyingAction(action, party);
+    }
+}
+
+abstract class CostOptimizingCampaignStrategy extends CampaignStrategy {
+    @Override
+    protected ActionConstituencyPair chooseActionConstituencyPair(Constituency[] constituencies,
+                                                                  CampaignAction[] availableActions, Party party) {
+        Constituency bestConstituency = null;
+        CampaignAction bestAction = null;
+        int actionCost = getStartingActionPrice(party);
+
+        for (Constituency constituency : constituencies) {
+            for (CampaignAction action : availableActions) {
+                int thisCombinationCost = action.calculateActionCost(constituency);
+                if (shouldPreferNewAction(actionCost, thisCombinationCost, party)) {
+                    bestAction = action;
+                    bestConstituency = constituency;
+                    actionCost = thisCombinationCost;
+                }
+            }
+        }
+
+        return bestAction == null ? null : new ActionConstituencyPair(bestAction, bestConstituency);
+    }
+
+    abstract boolean shouldPreferNewAction(int currentCost, int newCost, Party party);
+
+    abstract int getStartingActionPrice(Party party);
+}
+
+class LavishCampaignStrategy extends CostOptimizingCampaignStrategy {
+    @Override
+    boolean shouldPreferNewAction(int currentCost, int newCost, Party party) {
+        return newCost > currentCost && newCost < party.getRemainingBudget();
+    }
+
+    @Override
+    int getStartingActionPrice(Party party) {
+        return -1;
+    }
+}
+
+class FrugalCampaignStrategy extends CostOptimizingCampaignStrategy {
+    @Override
+    boolean shouldPreferNewAction(int currentCost, int newCost, Party party) {
+        return newCost < currentCost && newCost > 0;
+    }
+
+    @Override
+    int getStartingActionPrice(Party party) {
+        return party.getRemainingBudget() + 1;
+    }
+}
+
+class LazyCampaignStrategy extends CampaignStrategy {
+    @Override
+    protected ActionConstituencyPair chooseActionConstituencyPair(Constituency[] constituencies,
+                                                                  CampaignAction[] availableActions, Party party) {
+        for (Constituency constituency : constituencies) {
+            for (CampaignAction action : availableActions) {
+                if (action.calculateActionCost(constituency) <= party.getRemainingBudget()) {
+                    return new ActionConstituencyPair(action, constituency);
+                }
+            }
+        }
+
         return null;
-        //● są partie działające “zachłannie”, starają się wybierać takie działanie, które w
-        //największym stopniu zwiększy sumę sum ważonych cech swoich kandydatów w
-//danym okręgu wyborczym
-        // TODO
-    }
-}
-
-class LavishCampaignStrategy extends CampaignStrategy {
-    @Override
-    protected ActionConstituencyPair chooseActionConstituencyPair(Constituency[] constituencies,
-                                                                  CampaignAction[] availableActions, Party party) {
-        //● są partie działające “z rozmachem”, które zawsze wybierają najdroższe możliwe
-//działanie (na które pozwala im budżet)
-        return null;        // TODO
-    }
-}
-
-class FrugalCampaignStrategy extends CampaignStrategy {
-    @Override
-    protected ActionConstituencyPair chooseActionConstituencyPair(Constituency[] constituencies,
-                                                                  CampaignAction[] availableActions, Party party) {
-        return null;        // TODO
-        //● są partie działające “skromnie”, które zawsze wybierają najtańsze możliwe działanie
-    }
-}
-
-class OwnCampaignStrategy extends CampaignStrategy {
-    @Override
-    protected ActionConstituencyPair chooseActionConstituencyPair(Constituency[] constituencies,
-                                                                  CampaignAction[] availableActions, Party party) {
-        return null;        // TODO
     }
 }
 
@@ -57,7 +114,7 @@ public class PartyBuilder {
                 campaignStrategy = new FrugalCampaignStrategy();
                 break;
             case "W":
-                campaignStrategy = new OwnCampaignStrategy();
+                campaignStrategy = new LazyCampaignStrategy();
                 break;
             case "Z":
                 campaignStrategy = new GreedyCampaignStrategy();

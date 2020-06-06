@@ -15,7 +15,11 @@ public class CampaignAction {
 
     public int runOnConstituency(Constituency constituency) {
         int cost = calculateActionCost(constituency);
-        constituency.applyVectorModifierToVoters(vector);
+        constituency.permanentlyUpdateVotersPreferences(vector);
         return cost;
+    }
+
+    public void temporarilyUpdateVotersPreferences(Constituency constituency) {
+        constituency.temporarilyUpdateVotersPreferences(vector);
     }
 }

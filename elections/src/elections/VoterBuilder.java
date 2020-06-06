@@ -1,19 +1,31 @@
 package elections;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 abstract class VoterStrategy {
-
     void applyModifierVector(int[] vector) {
+    }
+
+    public void saveUpdatedPreferences() {
+    }
+
+    public void restoreSavedPreferences() {
+    }
+
+    public int getMatchScore(Candidate candidate) {
+        return 0;
     }
 }
 
 abstract class AbstractMultiParameterStrategy extends VoterStrategy {
     protected int[] coefficients;
+    protected int[] savedCoefficients;
 
     AbstractMultiParameterStrategy(int[] coefficients) {
         this.coefficients = coefficients;
+        this.savedCoefficients = Arrays.copyOf(coefficients, coefficients.length);
     }
 
     @Override
@@ -29,6 +41,28 @@ abstract class AbstractMultiParameterStrategy extends VoterStrategy {
 
             coefficients[i] = newValue;
         }
+    }
+
+    @Override
+    public int getMatchScore(Candidate candidate) {
+        int score = 0;
+        int[] candidateProperties = candidate.getPropertyValues();
+
+        for (int i = 0; i < coefficients.length; i++) {
+            score += coefficients[i] * candidateProperties[i];
+        }
+
+        return score;
+    }
+
+    @Override
+    public void saveUpdatedPreferences() {
+        savedCoefficients = Arrays.copyOf(coefficients, coefficients.length);
+    }
+
+    @Override
+    public void restoreSavedPreferences() {
+        coefficients = Arrays.copyOf(savedCoefficients, savedCoefficients.length);
     }
 }
 
