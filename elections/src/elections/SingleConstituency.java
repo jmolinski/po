@@ -51,6 +51,11 @@ public class SingleConstituency implements Constituency {
         return totalScore;
     }
 
+    @Override
+    public ConstituencyResults castVotes() {
+        return null;  // TODO
+    }
+
     public int mandatesCount() {
         return votersCount / 10;
     }

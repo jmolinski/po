@@ -21,4 +21,8 @@ public class Candidate extends Person {
     public int numberOnList() {
         return numberOnList;
     }
+
+    public Party party() {
+        return party;
+    }
 }

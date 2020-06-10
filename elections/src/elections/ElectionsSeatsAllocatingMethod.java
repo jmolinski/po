@@ -3,7 +3,7 @@ package elections;
 import java.util.HashMap;
 
 abstract public class ElectionsSeatsAllocatingMethod {
-    private final HashMap<Constituency, ConstituencyResults> resultsByConstituency;
+    protected final HashMap<Constituency, ConstituencyResults> resultsByConstituency;
     protected final Constituency[] constituencies;
     protected final Party[] parties;
 
@@ -15,50 +15,39 @@ abstract public class ElectionsSeatsAllocatingMethod {
     }
 
     private HashMap<Constituency, ConstituencyResults> castVotesInConstituencies() {
-        return null;  // TODO
+        var resultsByConstituency = new HashMap<Constituency, ConstituencyResults>();
+        for (var constituency : constituencies) {
+            resultsByConstituency.put(constituency, constituency.castVotes());
+        }
+        return resultsByConstituency;
     }
 
-    abstract public ElectionResults getResults();
-}
+    public ElectionResults getResults() {
+        for (ConstituencyResults constituencyResults : resultsByConstituency.values()) {
+            constituencyResults.mandatesByParty(calculateMandatesByParty(constituencyResults.partyVotesCount(),
+                    constituencyResults.constituency().mandatesCount()));
+        }
+        return new ElectionResults(methodName(), resultsByConstituency);
+    }
 
-class ConstituencyResults {
+    protected abstract HashMap<Party, Integer> calculateMandatesByParty(HashMap<Party, Integer> votesPerParty,
+                                                                        int mandatesCount);
 
+    protected abstract String methodName();
 }
 
 class DHondtMethod extends ElectionsSeatsAllocatingMethod {
-
-    //W wyniku dla każdej z 3 metod przeliczania głosów na mandaty program powinien wypisać
-    //w kolejnych wierszach:
-    //● nazwę metody przeliczania głosów
-    //● dla każdego okręgu wyborczego (podstawowego lub scalonego - można przyjąć
-    //dowolnie):
-    //○ nr okręgu wyborczego (w przypadku scalonego okręgu można podać 2
-    //numery)
-    //○ imię i nazwisko wyborcy, imię i nazwisko kandydata, na którego głosował (po
-    //1 wierszu na wyborcę)
-    //○ imię i nazwisko kandydata, jego partię i numer na liście oraz łączną liczbę
-    //głosów na niego (po 1 wierszu na kandydata)
-    //○ ciąg par (nazwa partii, liczba mandatów z danego okręgu)
-    //● łącznie (dla wszystkich okręgów): ciąg par (nazwa partii, liczba mandatów ze
-    // wszystkich okręgów)
-
-    // Metoda
-    // DLA OKREGU:
-    //     nr okregu
-    //     imie wyborcy, imie kandydata glosu
-    //     imie kandydata, partie, numer na liscie i liczbe glosow
-    //     ciąg par (nazwa partii, liczba glosow)
-    //
-    // DLA PARTII:
-    //     ciag par (nazwa partii, łącznie mandatów)
-
     public DHondtMethod(Constituency[] constituencies, Party[] parties) {
         super(constituencies, parties);
     }
 
-    @Override
-    public ElectionResults getResults() {
-        return null;  // # TODO
+    protected String methodName() {
+        return "D'Hondt Method";
+    }
+
+    protected HashMap<Party, Integer> calculateMandatesByParty(HashMap<Party, Integer> votesPerParty,
+                                                               int mandatesCount) {
+        return null;  // TODO
     }
 }
 
@@ -68,9 +57,13 @@ class SainteLagueMethod extends ElectionsSeatsAllocatingMethod {
         super(constituencies, parties);
     }
 
-    @Override
-    public ElectionResults getResults() {
-        return null;  // # TODO
+    protected String methodName() {
+        return "Sainte-Lague Method";
+    }
+
+    protected HashMap<Party, Integer> calculateMandatesByParty(HashMap<Party, Integer> votesPerParty,
+                                                               int mandatesCount) {
+        return null;  // TODO
     }
 }
 
@@ -80,8 +73,12 @@ class HareNiemeyerMethod extends ElectionsSeatsAllocatingMethod {
         super(constituencies, parties);
     }
 
-    @Override
-    public ElectionResults getResults() {
-        return null;  // # TODO
+    protected String methodName() {
+        return "Hare-Niemeyer Method";
+    }
+
+    protected HashMap<Party, Integer> calculateMandatesByParty(HashMap<Party, Integer> votesPerParty,
+                                                               int mandatesCount) {
+        return null;  // TODO
     }
 }

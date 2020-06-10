@@ -23,6 +23,13 @@ public class Elections {
         return (new DHondtMethod(constituencies, parties)).getResults();
     }
 
+    public ElectionResults sainteLagueMethodResults() {
+        return (new SainteLagueMethod(constituencies, parties)).getResults();
+    }
+
+    public ElectionResults hateNiemeyerResults() {
+        return (new HareNiemeyerMethod(constituencies, parties)).getResults();
+    }
 
 }
 

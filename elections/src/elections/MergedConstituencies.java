@@ -32,4 +32,14 @@ public class MergedConstituencies implements Constituency {
         int score2 = constituency2.checkCumulativePartyScoreAfterApplyingAction(action, party);
         return score1 + score2;
     }
+
+    @Override
+    public ConstituencyResults castVotes() {
+        return null;  // TODO
+    }
+
+    @Override
+    public int mandatesCount() {
+        return constituency1.mandatesCount() + constituency2.mandatesCount();
+    }
 }

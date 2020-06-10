@@ -8,4 +8,8 @@ public interface Constituency {
     void temporarilyUpdateVotersPreferences(int[] vector);
     
     int checkCumulativePartyScoreAfterApplyingAction(CampaignAction action, Party party);
+
+    ConstituencyResults castVotes();
+
+    int mandatesCount();
 }
