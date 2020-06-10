@@ -32,4 +32,8 @@ public class Party {
         }
         availableBudget -= cost;
     }
+
+    public String name() {
+        return name;
+    }
 }

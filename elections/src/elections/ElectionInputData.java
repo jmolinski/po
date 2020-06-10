@@ -129,18 +129,18 @@ public class ElectionInputData {
         for (SingleConstituency constituency : baseConstituencies) {
             for (Party party : parties) {
                 for (int positionOnList = 1; positionOnList <= constituency.mandatesCount(); positionOnList++) {
-                    constituency.addCandidate(party, parseSingleCandidate(scanner.nextLine()));
+                    constituency.addCandidate(party, parseSingleCandidate(scanner.nextLine(), party));
                 }
             }
         }
     }
 
-    private Candidate parseSingleCandidate(String line) {
-        var groups = getMatchedGroups("(\\S+)\\s+(\\S+)\\s+\\d+\\s+\\S+\\s+\\d+\\s+(.*)", line);
+    private Candidate parseSingleCandidate(String line, Party party) {
+        var groups = getMatchedGroups("(\\S+)\\s+(\\S+)\\s+\\d+\\s+\\S+\\s+(\\d+)\\s+(.*)", line);
         var candidateAttributes =
-                Stream.of(groups[2].split("\\s")).filter(e -> !e.isEmpty()).mapToInt(Integer::parseInt).toArray();
+                Stream.of(groups[3].split("\\s")).filter(e -> !e.isEmpty()).mapToInt(Integer::parseInt).toArray();
 
-        return new Candidate(groups[0], groups[1], candidateAttributes);
+        return new Candidate(groups[0], groups[1], Integer.parseInt(groups[2]), candidateAttributes, party);
     }
 
     private void readVotersList(Scanner scanner) throws InvalidInputData {

@@ -1,6 +1,6 @@
 package elections;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -17,13 +17,213 @@ abstract class VoterStrategy {
     public int getMatchScore(Candidate candidate) {
         return 0;
     }
+
+    abstract public Candidate vote(HashMap<Party, Candidate[]> partyCandidates);
 }
 
-abstract class AbstractMultiParameterStrategy extends VoterStrategy {
+class DevoutPartyStrategy extends VoterStrategy {
+    private final String partyName;
+
+    DevoutPartyStrategy(String partyName) {
+        this.partyName = partyName;
+    }
+
+    @Override
+    public Candidate vote(HashMap<Party, Candidate[]> partyCandidates) {
+        for (Party party : partyCandidates.keySet()) {
+            if (party.name().equals(partyName)) {
+                var candidates = partyCandidates.get(party);
+                return candidates[new Random().nextInt(candidates.length)];
+            }
+        }
+
+        return null;
+    }
+}
+
+class DevoutCandidateStrategy extends VoterStrategy {
+    private final int numberOnList;
+    private final String partyName;
+
+    DevoutCandidateStrategy(String partyName, int numberOnList) {
+        this.partyName = partyName;
+        this.numberOnList = numberOnList;
+    }
+
+    @Override
+    public Candidate vote(HashMap<Party, Candidate[]> partyCandidates) {
+        for (Party party : partyCandidates.keySet()) {
+            if (party.name().equals(partyName)) {
+                var candidates = partyCandidates.get(party);
+                for (var candidate : candidates) {
+                    if (candidate.numberOnList() == numberOnList) {
+                        // in case of merged constituencies there are 2
+                        // candidates with the same numberOnList and partyName
+                        return candidate;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+}
+
+abstract class OptimizingStrategy extends VoterStrategy {
+    @Override
+    public Candidate vote(HashMap<Party, Candidate[]> partyCandidates) {
+        var candidates = getCandidatesSet(partyCandidates);
+        var optimalCandidates = getOptimalCandidates(candidates);
+
+        if (optimalCandidates.isEmpty()) {
+            return null;
+        }
+
+        return optimalCandidates.get(new Random().nextInt(optimalCandidates.size()));
+    }
+
+    abstract protected List<Candidate> getOptimalCandidates(Candidate[] candidates);
+
+    protected abstract Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates);
+}
+
+abstract class OptimizeSingleParameterStrategy extends OptimizingStrategy {
+    protected final int attribute;
+
+    OptimizeSingleParameterStrategy(int attribute) {
+        this.attribute = attribute;
+    }
+
+    protected List<Candidate> getOptimalCandidates(Candidate[] candidates) {
+        var optimalCandidates = new ArrayList<Candidate>();
+        for (var possibleCandidate : candidates) {
+            if (optimalCandidates.isEmpty()) {
+                optimalCandidates.add(possibleCandidate);
+            } else {
+                int comp = compareCandidates(possibleCandidate, optimalCandidates.get(0));
+                if (comp > 0) {
+                    optimalCandidates.clear();
+                    optimalCandidates.add(possibleCandidate);
+                } else if (comp == 0) {
+                    optimalCandidates.add(possibleCandidate);
+                }
+            }
+        }
+
+        return optimalCandidates;
+    }
+
+    private int compareCandidates(Candidate oldCandidate, Candidate newCandidate) {
+        int newValue = newCandidate.getPropertyValues()[attribute - 1];
+        int oldValue = oldCandidate.getPropertyValues()[attribute - 1];
+        if (isBetter(oldValue, newValue)) {
+            return 1;
+        } else {
+            return newValue == oldValue ? 0 : -1;
+        }
+    }
+
+    protected abstract boolean isBetter(int oldValue, int newValue);
+
+    protected abstract Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates);
+}
+
+abstract class MinimizeSingleParameterStrategy extends OptimizeSingleParameterStrategy {
+    MinimizeSingleParameterStrategy(int attribute) {
+        super(attribute);
+    }
+
+    @Override
+    protected boolean isBetter(int oldValue, int newValue) {
+        return newValue < oldValue;
+    }
+}
+
+abstract class MaximizeSingleParameterStrategy extends OptimizeSingleParameterStrategy {
+    MaximizeSingleParameterStrategy(int attribute) {
+        super(attribute);
+    }
+
+    @Override
+    protected boolean isBetter(int oldValue, int newValue) {
+        return newValue > oldValue;
+    }
+}
+
+class MinimizeSingleParameterAnyPartyStrategy extends MinimizeSingleParameterStrategy {
+    MinimizeSingleParameterAnyPartyStrategy(int attribute) {
+        super(attribute);
+    }
+
+    @Override
+    protected Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates) {
+        var candidatesList = new ArrayList<Candidate>();
+        for (Candidate[] candidates : partyCandidates.values()) {
+            candidatesList.addAll(Arrays.asList(candidates));
+        }
+        return candidatesList.toArray(Candidate[]::new);
+    }
+}
+
+class MaximizeSingleParameterAnyPartyStrategy extends MaximizeSingleParameterStrategy {
+    MaximizeSingleParameterAnyPartyStrategy(int attribute) {
+        super(attribute);
+    }
+
+    @Override
+    protected Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates) {
+        var candidatesList = new ArrayList<Candidate>();
+        for (Candidate[] candidates : partyCandidates.values()) {
+            candidatesList.addAll(Arrays.asList(candidates));
+        }
+        return candidatesList.toArray(Candidate[]::new);
+    }
+}
+
+class MinimizeSingleParameterSinglePartyStrategy extends MinimizeSingleParameterStrategy {
+    private final String partyName;
+
+    MinimizeSingleParameterSinglePartyStrategy(String partyName, int attribute) {
+        super(attribute);
+        this.partyName = partyName;
+    }
+
+    @Override
+    protected Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates) {
+        for (Party party : partyCandidates.keySet()) {
+            if (party.name().equals(partyName)) {
+                return partyCandidates.get(party);
+            }
+        }
+        return null;
+    }
+}
+
+class MaximizeSingleParameterSinglePartyStrategy extends MaximizeSingleParameterStrategy {
+    private final String partyName;
+
+    MaximizeSingleParameterSinglePartyStrategy(String partyName, int attribute) {
+        super(attribute);
+        this.partyName = partyName;
+    }
+
+    @Override
+    protected Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates) {
+        for (Party party : partyCandidates.keySet()) {
+            if (party.name().equals(partyName)) {
+                return partyCandidates.get(party);
+            }
+        }
+        return null;
+    }
+}
+
+
+abstract class OptimizeMultiParameterStrategy extends OptimizingStrategy {
     protected int[] coefficients;
     protected int[] savedCoefficients;
 
-    AbstractMultiParameterStrategy(int[] coefficients) {
+    OptimizeMultiParameterStrategy(int[] coefficients) {
         this.coefficients = coefficients;
         this.savedCoefficients = Arrays.copyOf(coefficients, coefficients.length);
     }
@@ -64,76 +264,62 @@ abstract class AbstractMultiParameterStrategy extends VoterStrategy {
     public void restoreSavedPreferences() {
         coefficients = Arrays.copyOf(savedCoefficients, savedCoefficients.length);
     }
-}
 
-class DevoutPartyStrategy extends VoterStrategy {
-    DevoutPartyStrategy(String partyName) {
-        //1. Żelazny elektorat partyjny zawsze głosuje na losowego kandydata na liście danej
-        //partii.
-        // TODO
+    @Override
+    protected List<Candidate> getOptimalCandidates(Candidate[] candidates) {
+        var optimalCandidates = new ArrayList<Candidate>();
+        for (var possibleCandidate : candidates) {
+            if (optimalCandidates.isEmpty()) {
+                optimalCandidates.add(possibleCandidate);
+            } else {
+                int newCandidateScore = getMatchScore(possibleCandidate);
+                int currentBestScore = getMatchScore(optimalCandidates.get(0));
+                if (newCandidateScore > currentBestScore) {
+                    optimalCandidates.clear();
+                    optimalCandidates.add(possibleCandidate);
+                } else if (newCandidateScore == currentBestScore) {
+                    optimalCandidates.add(possibleCandidate);
+                }
+            }
+        }
+
+        return optimalCandidates;
     }
+
+    protected abstract Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates);
 }
 
-class DevoutCandidateStrategy extends VoterStrategy {
-    DevoutCandidateStrategy(String partyName, int numberOnList) {
-        //2. Żelazny elektorat kandydata zawsze głosuje na danego kandydata.
-        // TODO
-    }
-}
-
-class MinimizeSingleParameterStrategy extends VoterStrategy {
-    MinimizeSingleParameterStrategy(int attribute) {
-        // . Minimalizujący jednocechowy wybiera tego spośród kandydatów wszystkich partii,
-        //który ma najniższy poziom wybranej przez niego cechy (jeśli taką wartość ma więcej
-        //niż 1 kandydat, to wybór kandydata jest losowy).
-        // TODO
-    }
-}
-
-class MaximizeSingleParameterStrategy extends VoterStrategy {
-    MaximizeSingleParameterStrategy(int attribute) {
-        //  Maksymalizujący jednocechowy wybiera tego spośród kandydatów wszystkich partii,
-        //który ma najwyższy poziom wybranej przez niego cechy (jeśli taką wartość ma więcej
-        //niż 1 kandydat, to wybór kandydata jest losowy).
-        // TODO
-    }
-}
-
-class MultiParameterAnyPartyStrategy extends AbstractMultiParameterStrategy {
+class MultiParameterAnyPartyStrategy extends OptimizeMultiParameterStrategy {
     MultiParameterAnyPartyStrategy(int[] coefficients) {
         super(coefficients);
-        //  Maksymalizujący jednocechowy wybiera tego spośród kandydatów wszystkich partii,
-        //który ma najwyższy poziom wybranej przez niego cechy (jeśli taką wartość ma więcej
-        //niż 1 kandydat, to wybór kandydata jest losowy).
-        // TODO
+    }
+
+    @Override
+    protected Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates) {
+        var candidatesList = new ArrayList<Candidate>();
+        for (Candidate[] candidates : partyCandidates.values()) {
+            candidatesList.addAll(Arrays.asList(candidates));
+        }
+        return candidatesList.toArray(Candidate[]::new);
     }
 }
 
-class MinimizeSingleParameterSinglePartyStrategy extends VoterStrategy {
-    MinimizeSingleParameterSinglePartyStrategy(String partyName, int attribute) {
-        // . Minimalizujący jednocechowy wybiera tego spośród kandydatów wszystkich partii,
-        //który ma najniższy poziom wybranej przez niego cechy (jeśli taką wartość ma więcej
-        //niż 1 kandydat, to wybór kandydata jest losowy).
-        // TODO
-    }
-}
+class MultiParameterSinglePartyStrategy extends OptimizeMultiParameterStrategy {
+    private final String partyName;
 
-class MaximizeSingleParameterSinglePartyStrategy extends VoterStrategy {
-    MaximizeSingleParameterSinglePartyStrategy(String partyName, int attribute) {
-        //  Maksymalizujący jednocechowy wybiera tego spośród kandydatów wszystkich partii,
-        //który ma najwyższy poziom wybranej przez niego cechy (jeśli taką wartość ma więcej
-        //niż 1 kandydat, to wybór kandydata jest losowy).
-        // TODO
-    }
-}
-
-class MultiParameterSinglePartyStrategy extends AbstractMultiParameterStrategy {
     MultiParameterSinglePartyStrategy(String partyName, int[] coefficients) {
         super(coefficients);
-        //  Maksymalizujący jednocechowy wybiera tego spośród kandydatów wszystkich partii,
-        //który ma najwyższy poziom wybranej przez niego cechy (jeśli taką wartość ma więcej
-        //niż 1 kandydat, to wybór kandydata jest losowy).
-        // TODO
+        this.partyName = partyName;
+    }
+
+    @Override
+    protected Candidate[] getCandidatesSet(HashMap<Party, Candidate[]> partyCandidates) {
+        for (Party party : partyCandidates.keySet()) {
+            if (party.name().equals(partyName)) {
+                return partyCandidates.get(party);
+            }
+        }
+        return null;
     }
 }
 
@@ -166,11 +352,11 @@ public class VoterBuilder {
                 break;
             }
             case 3: {
-                strategy = new MinimizeSingleParameterStrategy(Integer.parseInt(extraArguments.strip()));
+                strategy = new MinimizeSingleParameterAnyPartyStrategy(Integer.parseInt(extraArguments.strip()));
                 break;
             }
             case 4: {
-                strategy = new MaximizeSingleParameterStrategy(Integer.parseInt(extraArguments.strip()));
+                strategy = new MaximizeSingleParameterAnyPartyStrategy(Integer.parseInt(extraArguments.strip()));
                 break;
             }
             case 5: {

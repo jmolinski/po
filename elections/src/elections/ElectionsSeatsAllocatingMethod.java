@@ -67,11 +67,21 @@ class SainteLagueMethod extends ElectionsSeatsAllocatingMethod {
     public SainteLagueMethod(Constituency[] constituencies, Party[] parties) {
         super(constituencies, parties);
     }
+
+    @Override
+    public ElectionResults getResults() {
+        return null;  // # TODO
+    }
 }
 
 
 class HareNiemeyerMethod extends ElectionsSeatsAllocatingMethod {
     public HareNiemeyerMethod(Constituency[] constituencies, Party[] parties) {
         super(constituencies, parties);
+    }
+
+    @Override
+    public ElectionResults getResults() {
+        return null;  // # TODO
     }
 }
