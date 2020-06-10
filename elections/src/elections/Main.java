@@ -19,7 +19,7 @@ public class Main {
             return;
         }
 
-        ElectionResults electionResults = new ElectionResults(inputData);
+        Elections electionResults = new Elections(inputData);
     }
 }
 
