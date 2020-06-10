@@ -20,6 +20,9 @@ public class Main {
         }
 
         Elections electionResults = new Elections(inputData);
+        electionResults.dhondtMethodResults().print();
+        electionResults.sainteLagueMethodResults().print();
+        electionResults.hateNiemeyerResults().print();
     }
 }
 

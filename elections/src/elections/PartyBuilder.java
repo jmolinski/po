@@ -7,7 +7,7 @@ class GreedyCampaignStrategy extends CampaignStrategy {
                                                                   CampaignAction[] availableActions, Party party) {
         Constituency bestConstituency = null;
         CampaignAction bestAction = null;
-        int bestNewScore = 0;   // TODO zamiast tego wyznaczanie różnicy
+        int bestNewScore = 0;
 
         for (Constituency constituency : constituencies) {
             for (CampaignAction action : availableActions) {

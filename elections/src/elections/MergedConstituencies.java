@@ -1,5 +1,8 @@
 package elections;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class MergedConstituencies implements Constituency {
     private final SingleConstituency constituency1;
     private final SingleConstituency constituency2;
@@ -34,12 +37,43 @@ public class MergedConstituencies implements Constituency {
     }
 
     @Override
-    public ConstituencyResults castVotes() {
-        return null;  // TODO
+    public int mandatesCount() {
+        return constituency1.mandatesCount() + constituency2.mandatesCount();
     }
 
     @Override
-    public int mandatesCount() {
-        return constituency1.mandatesCount() + constituency2.mandatesCount();
+    public String name() {
+        return "(" + constituency1.name() + "," + constituency2.name() + ")";
+    }
+
+    @Override
+    public ConstituencyResults castVotes() {
+        var candidates = new ArrayList<Candidate>();
+        for (var partyCandidates : constituency1.candidatesByParty().values()) {
+            candidates.addAll(partyCandidates);
+        }
+        for (var partyCandidates : constituency2.candidatesByParty().values()) {
+            candidates.addAll(partyCandidates);
+        }
+        var parties = constituency1.candidatesByParty().keySet().toArray(Party[]::new);
+
+        var results = new ConstituencyResults(this, candidates.toArray(Candidate[]::new), parties);
+
+        var candidatesArrayByParty = new HashMap<Party, Candidate[]>();
+        for (Party party : parties) {
+            var constituencyCandidates = new ArrayList<Candidate>();
+            constituencyCandidates.addAll(constituency1.candidatesByParty().get(party));
+            constituencyCandidates.addAll(constituency2.candidatesByParty().get(party));
+            candidatesArrayByParty.put(party, constituencyCandidates.toArray(Candidate[]::new));
+        }
+
+        for (Voter voter : constituency1.voters()) {
+            results.addVote(voter, voter.castVote(candidatesArrayByParty));
+        }
+        for (Voter voter : constituency1.voters()) {
+            results.addVote(voter, voter.castVote(candidatesArrayByParty));
+        }
+
+        return results;
     }
 }

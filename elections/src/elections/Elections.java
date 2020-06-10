@@ -13,7 +13,7 @@ public class Elections {
     }
 
     private void runCampaignSimulation() {
-        for (var party: parties) {
+        for (var party : parties) {
             party.resetBudget();
             party.runCampaign(constituencies, campaignActions);
         }

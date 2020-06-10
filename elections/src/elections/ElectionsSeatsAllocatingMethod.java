@@ -63,14 +63,14 @@ abstract class QuotientBasedSeatsAllocatingMethod extends ElectionsSeatsAllocati
         double maxQuotient = -1;
         for (Party party : mandates.keySet()) {
             double partyQuotient = getQuotient(mandates.get(party), votes.get(party));
-            if (partyQuotient < maxQuotient) {
+            if (partyQuotient > maxQuotient) {
                 maxQuotient = partyQuotient;
             }
         }
 
         var candidates = new ArrayList<Party>();
         for (Party party : mandates.keySet()) {
-            double partyQuotient = (double) votes.get(party) / (double) (mandates.get(party) + 1);
+            double partyQuotient = getQuotient(mandates.get(party), votes.get(party));
             if (Double.compare(partyQuotient, maxQuotient) == 0) {
                 candidates.add(party);
             }

@@ -1,5 +1,7 @@
 package elections;
 
+import java.util.HashMap;
+
 public class Voter extends Person {
     private final int baseConstituencyNumber;
     private final VoterStrategy strategy;
@@ -24,5 +26,9 @@ public class Voter extends Person {
 
     public int getCandidateScore(Candidate candidate) {
         return strategy.getMatchScore(candidate);
+    }
+
+    public Candidate castVote(HashMap<Party, Candidate[]> candidatesByParty) {
+        return strategy.vote(candidatesByParty);
     }
 }

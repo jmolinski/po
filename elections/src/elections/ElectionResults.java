@@ -3,36 +3,58 @@ package elections;
 import java.util.HashMap;
 
 public class ElectionResults {
+    private final String methodName;
+    private final HashMap<Constituency, ConstituencyResults> resultsByConstituency;
+
     public ElectionResults(String methodName, HashMap<Constituency, ConstituencyResults> resultsByConstituency) {
-        // TODO
+        this.methodName = methodName;
+        this.resultsByConstituency = resultsByConstituency;
     }
-
-    //W wyniku dla każdej z 3 metod przeliczania głosów na mandaty program powinien wypisać
-    //w kolejnych wierszach:
-    //● nazwę metody przeliczania głosów
-    //● dla każdego okręgu wyborczego (podstawowego lub scalonego - można przyjąć
-    //dowolnie):
-    //○ nr okręgu wyborczego (w przypadku scalonego okręgu można podać 2
-    //numery)
-    //○ imię i nazwisko wyborcy, imię i nazwisko kandydata, na którego głosował (po
-    //1 wierszu na wyborcę)
-    //○ imię i nazwisko kandydata, jego partię i numer na liście oraz łączną liczbę
-    //głosów na niego (po 1 wierszu na kandydata)
-    //○ ciąg par (nazwa partii, liczba mandatów z danego okręgu)
-    //● łącznie (dla wszystkich okręgów): ciąg par (nazwa partii, liczba mandatów ze
-    // wszystkich okręgów)
-
-    // Metoda
-    // DLA OKREGU:
-    //     nr okregu
-    //     imie wyborcy, imie kandydata glosu
-    //     imie kandydata, partie, numer na liscie i liczbe glosow
-    //     ciąg par (nazwa partii, liczba mandatów)
-    //
-    // DLA PARTII:
-    //     ciag par (nazwa partii, łącznie mandatów)
 
     public void print() {
+        System.out.println("\n" + methodName);
 
+        for (var constituencyResults : resultsByConstituency.values()) {
+            System.out.println("Constituency number " + constituencyResults.constituency().name());
+
+            System.out.println("\nVoters' votes: ");
+            var votes = constituencyResults.votes();
+            for (var voter : votes.keySet()) {
+                System.out.println(voter.name() + " " + votes.get(voter).name());
+            }
+
+            System.out.println("\nCandidates' received votes: ");
+            var candidatesVotes = constituencyResults.candidateVotesCount();
+            for (var candidate : candidatesVotes.keySet()) {
+                System.out.println(
+                        candidate.name() + " " + candidate.party().name() + " " + candidate.numberOnList() + " " +
+                                candidatesVotes.get(candidate));
+            }
+
+            System.out.println("\nParties' received mandates: ");
+            var partiesMandates = constituencyResults.mandatesByParty();
+            for (var party : partiesMandates.keySet()) {
+                System.out.println("(" + party.name() + ", " + partiesMandates.get(party) + ")");
+            }
+        }
+
+        printOverallStatistics();
+    }
+
+    private void printOverallStatistics() {
+        var mandatesPerParty = new HashMap<Party, Integer>();
+
+        for (var constituencyResults : resultsByConstituency.values()) {
+            var partiesMandates = constituencyResults.mandatesByParty();
+            for (var party : partiesMandates.keySet()) {
+                mandatesPerParty.put(party, mandatesPerParty.getOrDefault(party, 0) + partiesMandates.get(party));
+            }
+        }
+
+        System.out.println("\nMandates per party overall:");
+        for (Party party : mandatesPerParty.keySet()) {
+            System.out.println("(" + party.name() + ", " + mandatesPerParty.get(party) + ")");
+        }
     }
 }
+

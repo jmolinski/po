@@ -2,6 +2,7 @@ package elections;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class SingleConstituency implements Constituency {
     private final int votersCount;
@@ -53,11 +54,33 @@ public class SingleConstituency implements Constituency {
 
     @Override
     public ConstituencyResults castVotes() {
-        return null;  // TODO
+        var candidates = new ArrayList<Candidate>();
+        for (var partyCandidates : candidatesByParty.values()) {
+            candidates.addAll(partyCandidates);
+        }
+        var parties = candidatesByParty.keySet().toArray(Party[]::new);
+
+        var results = new ConstituencyResults(this, candidates.toArray(Candidate[]::new), parties);
+
+        var candidatesArrayByParty = new HashMap<Party, Candidate[]>();
+        for (Party party : candidatesByParty.keySet()) {
+            candidatesArrayByParty.put(party, candidatesByParty.get(party).toArray(Candidate[]::new));
+        }
+
+        for (Voter voter : voters) {
+            results.addVote(voter, voter.castVote(candidatesArrayByParty));
+        }
+
+        return results;
     }
 
     public int mandatesCount() {
         return votersCount / 10;
+    }
+
+    @Override
+    public String name() {
+        return Integer.toString(baseNumber);
     }
 
     public void addVoter(Voter voter) {
@@ -69,5 +92,13 @@ public class SingleConstituency implements Constituency {
             candidatesByParty.put(party, new ArrayList<>());
         }
         candidatesByParty.get(party).add(candidate);
+    }
+
+    public Map<Party, ArrayList<Candidate>> candidatesByParty() {
+        return candidatesByParty;
+    }
+
+    public Voter[] voters() {
+        return voters.toArray(Voter[]::new);
     }
 }

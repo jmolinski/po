@@ -6,10 +6,12 @@ public interface Constituency {
     void permanentlyUpdateVotersPreferences(int[] vector);
 
     void temporarilyUpdateVotersPreferences(int[] vector);
-    
+
     int checkCumulativePartyScoreAfterApplyingAction(CampaignAction action, Party party);
 
     ConstituencyResults castVotes();
 
     int mandatesCount();
+
+    String name();
 }
