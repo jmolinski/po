@@ -1,0 +1,1 @@
+W razie niejasności oznaczeń na diagramie kod w pliku diagram.puml powinien jaśniej nazywać cechę/relację.

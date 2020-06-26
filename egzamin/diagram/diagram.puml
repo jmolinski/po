@@ -1,0 +1,161 @@
+@startuml
+
+left to right direction
+
+class Bajtocja {
+    -Bank[] banki
+    +Bajtocja()
+    +void utworzBank(String nazwa)
+}
+
+class Bank {
+    -String nazwa
+    -Konto[] konta----
+    +Bank(String nazwa)
+
+    +void przetworzZleceniaPrzelewu(Collection<ZleceniePrzelewu> zlecenia)
+    +void koniecMiesiaca()
+
+    -void przetworzZleceniePrzelewu(ZleceniePrzelewu zlecenie)
+    -Collection<ZleceniePrzelewu> utworzZleceniaSplatyRat()
+    -Collection<ZleceniePrzelewu> utworzZleceniaSplatyKontKartowych()
+    -void doliczOdsetkiDoKont()
+    -void wypiszStanWszystkichKont()
+
+    +void utworzNoweKonto(String wlasciciel)
+    +void likwidujKonto(String numerKonta)
+    +void dokonajWplatyGotowkowejWOkienku(int kwota, String numerKonta)
+    +void dokonajWyplatyGotowkowejWOkienku(int kwota, String numerKonta)
+    +void zlozZleceniePrzelewuWOkienku(int kwota, String zKonta, String naKonto)
+}
+
+abstract class KontoDoPrzechowywania {
+    +{abstract} KontoDoPrzechowywania(String numer, String wlasciciel, String waluta)
+    + boolean czyWplataMozliwa(String waluta, int kwota)
+    + boolean wplac(String waluta, int kwota)
+}
+
+abstract class KontoKredytowe {
+    #KontoBiezace powiazaneKonto
+    + boolean czyKontoKredytowe()
+    + boolean czyWplataMozliwa(String waluta, int kwota)
+    + boolean wplac(String waluta, int kwota)
+    +{abstract} KontoKredytowe(String numer, String wlasciciel, String waluta, KontoBiezace powiazaneKonto)
+}
+
+class KontoBiezace {
+    +String toString()
+    + KontoBiezace(String numer, String wlasciciel, String waluta)
+    + boolean wyplac(String waluta, int kwota)
+    + boolean czyWyplataMozliwa(String waluta, int kwota)
+}
+
+class KontoRatalne {
+    -int poczatkowaKwotaKredytu
+    -float stopaOprocentowaniaRoczna
+    -int liczbaRat
+    +String toString()
+    + KontoRatalne(String numer, String wlasciciel, String waluta, KontoBiezace powiazaneKonto, int kwotaKredytu, int liczbaRat, float stopaOprocentowaniaRoczna)
+    + boolean wyplac(String waluta, int kwota)
+    + boolean czyWyplataMozliwa(String waluta, int kwota)
+    + boolean splacRate(String waluta, int kwota)
+    + boolean czySplataRatyMozliwa(String waluta, int kwota)
+    + int naleznaRataZaAktualnyMiesiac()
+    + boolean czyKontoRatalne()
+    + ZleceniePrzelewu przygotujZleceniePrzelewuRaty()
+}
+
+class KontoOszczednosciowe {
+    -float oprocentowanie;
+    +int nalezneOdsetkiZaMiesiac()
+    +String toString()
+    + KontoOszczednosciowe(String numer, String wlasciciel, String waluta, float oprocentowanie)
+    + boolean wyplac(String waluta, int kwota)
+    + boolean czyWyplataMozliwa(String waluta, int kwota)
+    + boolean czyKontoOszczednosciowe()
+}
+
+class KontoKartowe {
+    -int limitKarty
+    +String toString()
+    + KontoKartowe(String numer, String wlasciciel, String waluta, KontoBiezace powiazaneKonto, int limitKarty)
+    + boolean wyplac(String waluta, int kwota)
+    + boolean czyWyplataMozliwa(String waluta, int kwota)
+    + ZleceniePrzelewu przygotujZlecenieSplatyKarty()
+}
+
+class KontoZagregowane {
+    -Map<String, PojedynczeKonto> kontaSkladowe
+
+    +KontoZagregowane(String numer, String wlasciciel)
+    +boolean dodajKonto(PojedynczeKonto konto)
+    +void zamknijKontoSkladowe(String numerKonta)
+
+    + boolean wyplac(String waluta, int kwota)
+    + boolean wplac(String waluta, int kwota)
+    + boolean czyWplataMozliwa(String waluta, int kwota)
+    + boolean czyWyplataMozliwa(String waluta, int kwota)
+    -PojedynczeKonto wezKonto(String waluta)
+}
+
+abstract class PojedynczeKonto {
+    #String waluta
+    +String waluta()
+    #int saldo
+    +int saldo()
+
+    +{abstract} PojedynczeKonto(String numer, String wlasciciel, String waluta)
+}
+
+
+abstract class Konto {
+    # String numer
+    + String numer()
+    # String wlasciciel
+    + String wlasciciel()
+
+    +Konto(String numer, String wlasciciel)
+
+    + void zamknij()
+    + void {abstract} wyplac(String waluta, int kwota)
+    + void {abstract} wplac(String waluta, int kwota) 
+    + boolean {abstract} czyWplataMozliwa(String waluta, int kwota)
+    + boolean {abstract} czyWyplataMozliwa(String waluta, int kwota)
+    + boolean splacRate(String waluta, int kwota)
+    + boolean czySplataRatyMozliwa(String waluta, int kwota)
+
+    + boolean czyKontoRatalne()
+    + boolean czyKontoKredytowe()
+    + boolean czyKontoOszczednosciowe()
+}
+
+
+class ZleceniePrzelewu {
+    -int kwota
+    -String numerKontaWyjsciowego
+    -String numerKontaDocelowego
+    -String waluta
+
+    +ZleceniePrzelewu(int kwota, String waluta, String zKonta, String naKonto)
+
+    +int kwota()
+    +String numerKontaWyjsciowego()
+    +String numerKontaDocelowego()
+    +String walutaPrzelewu()
+}
+
+class PowaznaAwaria
+abstract class Exception
+PowaznaAwaria -|> Exception
+MaloPowaznaAwaria -|> Exception
+
+KontoKartowe --|> KontoKredytowe
+KontoRatalne --|> KontoKredytowe
+KontoOszczednosciowe --|> KontoDoPrzechowywania
+KontoBiezace --|> KontoDoPrzechowywania
+KontoDoPrzechowywania ..|> PojedynczeKonto 
+KontoKredytowe ..|> PojedynczeKonto
+Konto <|.. PojedynczeKonto
+Konto <|.. KontoZagregowane
+
+@enduml
