@@ -1,6 +1,3 @@
 # po
 
-
-prowadzacy Tomasz Walen
-email walen@mimuw.edu.pl
-
+Programowanie Obiektowe, losowe notatki, mikrozadania z labów (niektóre), rozwiązanie kolosa, egzaminu i zadań zaliczeniowych
